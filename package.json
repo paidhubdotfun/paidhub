@@ -4,6 +4,19 @@
   "private": true,
   "description": "Coins for GitHub repos on pump.fun. Half of every fee goes to the people who wrote the code.",
   "homepage": "https://paidhub.io",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/paidhubdotfun/paidhub.git"
+  },
+  "keywords": [
+    "solana",
+    "pump.fun",
+    "github",
+    "launchpad",
+    "creator-fees",
+    "open-source"
+  ],
   "type": "module",
   "scripts": {
     "dev": "vite",

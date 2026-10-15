@@ -1051,3 +1051,13 @@ fieldset:disabled {
     grid-column: 2;
   }
 }
+
+.docs p,
+.docs li,
+.docs dd {
+  overflow-wrap: anywhere;
+}
+
+.step > img {
+  display: block;
+}
