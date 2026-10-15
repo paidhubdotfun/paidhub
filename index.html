@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>paidhub: coins for GitHub repos that pay the people who wrote the code</title>
+    <meta name="description" content="Launch a pump.fun coin on any GitHub repo. Half of its creator fees go to the repo's developers through pump's GitHub fee accounts, which only they can claim. When a developer claims, the pot buys the coin back and burns it." />
+    <meta name="theme-color" content="#FDFB0A" />
+    <link rel="icon" href="/favicon.png" type="image/png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="canonical" href="https://paidhub.io/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="paidhub" />
+    <meta property="og:title" content="paidhub: code pays" />
+    <meta property="og:description" content="Coins for GitHub repos. Half of every fee goes to the people who wrote the code." />
+    <meta property="og:url" content="https://paidhub.io/" />
+    <meta property="og:image" content="https://paidhub.io/og.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="https://paidhub.io/og.png" />
+    <link rel="preload" href="/fonts/DepartureMono-Regular.woff2" as="font" type="font/woff2" crossorigin />
+    <script src="/config.js"></script>
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to the page</a>
+    <div class="shell">
+      <aside class="rail" aria-label="paidhub">
+        <a class="rail__mark" href="/" aria-label="paidhub, home">
+          <img src="/px/wordmark.png" alt="paidhub" width="201" height="47" />
+          <img class="rail__tag" src="/px/tagline.png" alt="code pays" width="122" height="13" />
+        </a>
+        <nav id="nav" class="tree" aria-label="Pages">
+          <p class="tree__root"><img class="px" src="/px/folder.png" alt="" width="25" height="26" /> paidhub/</p>
+          <ul>
+            <li><a href="/" data-page="coins"><img class="px" src="/px/file.png" alt="" width="24" height="30" />coins</a></li>
+            <li><a href="/unclaimed" data-page="unclaimed"><img class="px" src="/px/file.png" alt="" width="24" height="30" />unclaimed</a></li>
+            <li><a href="/launch" data-page="launch"><img class="px" src="/px/file.png" alt="" width="24" height="30" />launch</a></li>
+            <li><a href="/scout" data-page="scout"><img class="px" src="/px/file.png" alt="" width="24" height="30" />scout</a></li>
+            <li><a href="/developers" data-page="developers"><img class="px" src="/px/file.png" alt="" width="24" height="30" />developers</a></li>
+            <li><a href="/docs" data-page="docs"><img class="px" src="/px/file.png" alt="" width="24" height="30" />docs</a></li>
+          </ul>
+        </nav>
+      </aside>
+      <main id="main" tabindex="-1">
+        <noscript><p class="noscript">paidhub needs JavaScript for live data. The rules: a coin on a GitHub repo sends half of its creator fees to the repo's developers through pump.fun's GitHub fee accounts.</p></noscript>
+      </main>
+    </div>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
