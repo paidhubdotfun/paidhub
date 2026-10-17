@@ -6,10 +6,10 @@
 //  them automatically.
 // ============================================================================
 window.SITE_CONFIG = {
-  CA: "",                                          // the $paidhub token MINT, base58, e.g. 7xKX...pump
-  X: "",                                           // https://x.com/<handle>
-  PUMP: "https://pump.fun/coin/",                  // launchpad base: the mint is appended (do not edit)
-  DEXSCREENER: "https://dexscreener.com/solana/",  // chart base: the mint is appended (do not edit)
+  CA: "8UTM7DDJsMMo4MB2b9TnrxsP3ww6PjGqm1HKJGYXpump",                                          // the $paidhub token MINT, base58, e.g. 7xKX...pump
+  X: "https://x.com/paidhubdotio",                                           // https://x.com/<handle>
+  PUMP: "https://pump.fun/coin/8UTM7DDJsMMo4MB2b9TnrxsP3ww6PjGqm1HKJGYXpump",                  // launchpad base: the mint is appended (do not edit)
+  DEXSCREENER: "https://dexscreener.com/solana/8UTM7DDJsMMo4MB2b9TnrxsP3ww6PjGqm1HKJGYXpump",  // chart base: the mint is appended (do not edit)
 
   NAME: "paidhub",
   TICKER: "$paidhub",
