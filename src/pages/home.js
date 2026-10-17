@@ -27,7 +27,16 @@ function hubFile() {
         ${CONFIG.HAS_CA ? `<button class="btn" type="button" data-copy="${esc(CONFIG.CA)}" data-what="contract">Copy</button>` : `<span class="btn" aria-disabled="true">Copy</span>`}
         ${x}
       </div>
+      <p class="hub__burn" id="ph-burn" hidden></p>
     </div>`;
+}
+
+/** What the keeper has bought back and burned of $paidhub itself (6 decimals), with the last burn. */
+function burnLine(ph) {
+  if (!ph?.spent) return "";
+  const tokens = Number(BigInt(ph.burned || "0") / 1_000_000n);
+  const last = ph.last?.burnSig ? ` · <a href="${explorer("tx", ph.last.burnSig)}" target="_blank" rel="noopener">last burn</a> ${ago(ph.last.at)}` : "";
+  return `${px("flame", 1)}<span>The keeper bought back ${sol(ph.spent)} of $paidhub and burned ${int(tokens)} tokens${last}</span>`;
 }
 
 function coinRow(c) {
@@ -149,6 +158,8 @@ export default async function home(root) {
   front()
     .then(({ data }) => {
       const list = root.querySelector("#coin-list");
+      const burn = burnLine(data?.paidhub);
+      if (burn) Object.assign(root.querySelector("#ph-burn"), { innerHTML: burn, hidden: false });
       if (!data || !data.coins.length) {
         list.innerHTML = `<p class="empty">No coins yet. ${CONFIG.LAUNCH_OPEN ? `<a href="/launch">Launch the first one</a>.` : "Launching opens when the pad goes live."}</p>`;
         root.querySelector("#events").innerHTML = `<p class="empty">No claims yet. The first developer who claims sets off the first buyback.</p>`;

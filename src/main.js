@@ -45,7 +45,11 @@ async function render() {
   }
   document.body.dataset.route = path === "/" ? "home" : "";
   main.innerHTML = "";
-  cleanup = (await page(main)) || null;
+  // each page renders into its own box: work a page finishes after the visitor moved on lands in a detached
+  // box instead of looking for its elements on the next page
+  const view = document.createElement("div");
+  main.append(view);
+  cleanup = (await page(view)) || null;
   const title = main.querySelector("h1")?.textContent?.trim();
   document.title = path === "/" || !title ? "paidhub: coins for GitHub repos that pay the people who wrote the code" : `${title} · paidhub`;
 }

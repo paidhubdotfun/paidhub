@@ -382,6 +382,15 @@ textarea.well {
 .hub h1 {
   font-size: clamp(26px, 3.2vw, 36px);
 }
+.hub__burn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+.hub__burn[hidden] {
+  display: none;
+}
 .ca {
   display: grid;
   gap: 6px;
