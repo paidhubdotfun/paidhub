@@ -15,6 +15,7 @@
 import {
   ComputeBudgetProgram,
   Keypair,
+  SystemProgram,
   TransactionMessage,
   VersionedTransaction,
 } from "@solana/web3.js";
@@ -77,8 +78,9 @@ export async function buildLaunch({
   const quoteAmount = needed.muln(Math.round((100 + slippagePercent) * 100)).divn(10000);
 
   const tables = lookupTable ? [lookupTable] : [];
-  const build = () =>
-    sdk.createV2AndBuyV2Instructions({
+  const topUp = await mintRentTopUp({ connection, payer: user, mint, name, symbol, uri });
+  const build = async () => [
+    ...(await sdk.createV2AndBuyV2Instructions({
       global,
       mint,
       name,
@@ -90,7 +92,9 @@ export async function buildLaunch({
       quoteAmount,
       mayhemMode: false,
       quoteMint: WSOL,
-    });
+    })),
+    ...topUp,
+  ];
   const createAndBuy = await acceptedRecipients(connection, build, user, tables);
 
   // The fee program alone spends about 100k units and the whole pair blows past 400k.
@@ -160,6 +164,24 @@ async function feeShareInstructions({ sdk, user, mint, people }) {
     bondingCurveComplete: false,
   });
   return [...open, create, update];
+}
+
+/**
+ * Token-2022 never lets a mint be 355 bytes long (a multisig's size) and adds two bytes, which
+ * create_v2 does not pay rent for: the coin's mint is 318 bytes plus its name, symbol and uri, so a
+ * coin whose three add up to exactly 37 bytes fails with InsufficientFundsForRent. The launcher pays
+ * those two bytes (checked on mainnet, 2026-10-17).
+ */
+const MINT_BASE_LEN = 318;
+const MULTISIG_LEN = 355;
+
+async function mintRentTopUp({ connection, payer, mint, name, symbol, uri }) {
+  if (MINT_BASE_LEN + Buffer.byteLength(name + symbol + uri) !== MULTISIG_LEN) return [];
+  const [paid, needed] = await Promise.all([
+    connection.getMinimumBalanceForRentExemption(MULTISIG_LEN),
+    connection.getMinimumBalanceForRentExemption(MULTISIG_LEN + 2),
+  ]);
+  return [SystemProgram.transfer({ fromPubkey: payer, toPubkey: mint, lamports: needed - paid })];
 }
 
 /**

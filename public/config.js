@@ -17,9 +17,9 @@ window.SITE_CONFIG = {
   SITE: "https://paidhub.io",                      // the public origin, for og/canonical
 
   // Written once at go-live by the setup script. Never edited by hand.
-  KEEPER_WALLET: "",                               // the keeper: 20% of every coin, buys back $paidhub, tops up the pot
-  POT_WALLET: "",                                  // the pot: 20% of every coin, buys a coin back when its developer claims
-  LOOKUP_TABLE: "",                                // the launch transaction's address lookup table
+  KEEPER_WALLET: "5M6F9gpuSpkbR3w5sXY3vg8KxH8HE1TuQd1rffhYoK1b",                               // the keeper: 20% of every coin, buys back $paidhub, tops up the pot
+  POT_WALLET: "SEsvqHHG9vY7s6bKcbaSc4H21eb5BJV3SAG52UGyJ8y",                                  // the pot: 20% of every coin, buys a coin back when its developer claims
+  LOOKUP_TABLE: "CtrdcAxQQH3EA6tvAtNwRsoaJHpKoT92G6YirLm47324",                                // the launch transaction's address lookup table
 
   EXPLORER: "https://solscan.io",                  // /token/<mint>, /account/<addr>, /tx/<sig>
 };
