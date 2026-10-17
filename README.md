@@ -29,7 +29,7 @@ fee accounts for that repo's developers. **paidhub never holds that money and ca
 developer can claim it, on pump.fun, by signing in with GitHub.
 
 The first time a developer claims, the pad's pot buys their coin back over an hour and burns every token it
-buys. Meanwhile [about 18,500 SOL](https://paidhub.io/unclaimed) already waits on pump.fun for GitHub
+buys. Meanwhile [over 22,000 SOL](https://paidhub.io/unclaimed) already waits on pump.fun for GitHub
 developers who have never claimed it.
 
 <p align="center"><img src="docs/home.png" alt="The paidhub home page: repo files flying into the hub" width="100%"></p>
