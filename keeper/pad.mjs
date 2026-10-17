@@ -20,7 +20,7 @@ import crypto from "node:crypto";
 import path from "node:path";
 import { PublicKey } from "@solana/web3.js";
 import { TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID } from "@solana/spl-token";
-import { githubPda, decodeSocialPda } from "../server/lib/chain.js";
+import { githubPda, decodeSocialPda, readSharingConfig } from "../server/lib/chain.js";
 import { registerIfLaunched } from "../server/lib/register.js";
 import { STATE_KEY, BOARD_KEY, SCOUT_KEY, coinKey, launchKey, pageKey } from "../server/lib/store.js";
 import { CONSENT_KEY } from "../server/lib/target.js";
@@ -121,6 +121,24 @@ export class Pad {
       } catch (e) {
         this.log(`${coin.symbol}: distribute failed: ${String(e.message).slice(0, 200)}`);
       }
+    }
+    await this.distributeOwn();
+  }
+
+  /**
+   * $paidhub itself, once its creator shares its fees with the keeper through pump's fee sharing: the keeper
+   * pays its vault out on the same clock, and the hourly spare turns what lands into the buyback.
+   */
+  async distributeOwn() {
+    const mint = await this.padMint().catch(() => null);
+    if (!mint || this.records.has(mint) || !this.due("ownDistribute", KEEPER.distributeEveryMs)) return;
+    try {
+      const config = await readSharingConfig(this.connection, mint);
+      if (!config?.shareholders?.some((s) => new PublicKey(s.address).equals(this.keeper.publicKey))) return;
+      const sig = await this.chain.collect(this.connection, { mint, keeper: this.keeper, minLamports: KEEPER.distributeMinLamports, log: (m) => this.log(`$paidhub: ${m}`) });
+      if (sig) this.log(`$paidhub: its fees paid out (${sig.slice(0, 10)})`);
+    } catch (e) {
+      this.log(`$paidhub: distribute failed: ${String(e.message).slice(0, 200)}`);
     }
   }
 
