@@ -45,7 +45,7 @@ export async function registerIfLaunched(store, connection, built, signatures = 
 
 // what a launch transaction may call at its top level: compute budget, the system and token programs,
 // pump's three programs and mayhem, memo, and Lighthouse (the guard some wallets add)
-const LAUNCH_PROGRAMS = new Set([
+export const LAUNCH_PROGRAMS = new Set([
   "ComputeBudget111111111111111111111111111111",
   "11111111111111111111111111111111",
   "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL",
@@ -56,7 +56,7 @@ const LAUNCH_PROGRAMS = new Set([
   "pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA",
   "MAyhSmzXzV1pTf7LsNkrNwkWKTo4ougAJ1PPg47MD4e",
   "MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr",
-  "L2TExMFKdjpN9kozasaurPtRRJjpoWbpw1GgDQzmM9ef",
+  "L2TExMFKdjpN9kozasaurPirfHy9P8sbXoAN1qA3S95",
 ]);
 
 /**
@@ -69,6 +69,6 @@ export function checkLaunchTx(tx, { mint, launcher }) {
   if (!keys.includes(mint)) throw new Error("this transaction does not name the coin");
   for (const ix of tx.message.compiledInstructions) {
     const program = keys[ix.programIdIndex];
-    if (!program || !LAUNCH_PROGRAMS.has(program)) throw new Error("this transaction does more than launch the coin");
+    if (!program || !LAUNCH_PROGRAMS.has(program)) throw new Error(`this transaction does more than launch the coin (it calls ${program || "an unknown program"})`);
   }
 }

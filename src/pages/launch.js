@@ -87,7 +87,16 @@ export default async function launchPage(root) {
         return;
       }
       if (r.held) {
-        $("#people").innerHTML = `<p style="margin-top:8px">Someone is launching ${esc(r.repo.fullName)} right now. Look again in a few minutes.</p>`;
+        // the hold may be this visitor's own unfinished attempt: it only knows them by their wallet
+        $("#people").innerHTML = `<p style="margin-top:8px">Someone is launching ${esc(r.repo.fullName)} right now. Look again in a few minutes${connected() ? "" : `, or <a href="#" id="mine">connect the wallet</a> if it is you`}.</p>`;
+        $("#mine")?.addEventListener("click", async (e) => {
+          e.preventDefault();
+          try {
+            await connect();
+            walletLabel();
+            check();
+          } catch {}
+        });
         return;
       }
       target = r;
