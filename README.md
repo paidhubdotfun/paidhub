@@ -78,7 +78,7 @@ read by the site, the API and the keeper alike.
 
 ## Check it yourself
 
-A launch is two transactions the launcher's wallet signs in one approval:
+A launch is two transactions from the launcher's wallet, signed one after the other: the coin, then, once it is on chain, its split.
 
 | transaction | instructions |
 |---|---|

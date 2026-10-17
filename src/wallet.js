@@ -1,7 +1,7 @@
 /**
- * The wallet, and only where the mechanic needs one: a launch is two transactions signed in one
- * approval. Reading coins, the board and people needs no wallet. The pad never asks for a
- * transaction it did not build itself.
+ * The wallet, and only where the mechanic needs one: a launch is two transactions, the coin and then,
+ * once it exists, its fee split, each approved on its own. Reading coins, the board and people needs no
+ * wallet. The pad never asks for a transaction it did not build itself.
  */
 const PROVIDERS = [
   { key: "phantom", label: "Phantom", at: () => window.phantom?.solana ?? (window.solana?.isPhantom ? window.solana : null) },
@@ -42,16 +42,15 @@ export async function disconnect() {
 }
 
 /**
- * Sign every transaction of a launch in ONE approval. A wallet without signAllTransactions falls
- * back to signing them one at a time, which is two approvals and the same result.
+ * Sign transactions one by one with signTransaction, each simulated by the wallet against the chain as
+ * it is: Phantom shows a red "could be malicious" screen for a transaction it cannot simulate, which is
+ * what a fee split signed before its coin exists looks like.
  */
 export async function signAll(base64List) {
   if (!current) throw new Error("connect a wallet first");
   const { VersionedTransaction } = await import("@solana/web3.js");
-  const txs = base64List.map((b) => VersionedTransaction.deserialize(base64ToBytes(b)));
-  const signed = current.provider.signAllTransactions
-    ? await current.provider.signAllTransactions(txs)
-    : await Promise.all(txs.map((t) => current.provider.signTransaction(t)));
+  const signed = [];
+  for (const b of base64List) signed.push(await current.provider.signTransaction(VersionedTransaction.deserialize(base64ToBytes(b))));
   return signed.map((t) => bytesToBase64(t.serialize()));
 }
 

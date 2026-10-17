@@ -10,7 +10,8 @@
  * Two transactions because one does not fit: create + ATA + buy is ~1100 bytes as v0 even with the
  * static accounts in a lookup table. The second opens each person's GitHub fee account (idempotent:
  * pump accepts a create on an account that already exists), the sharing config, and locks the split.
- * The wallet approves both at once with signAllTransactions and the server sends them in order.
+ * The wallet signs the coin, the server adds the mint's signature and sends it; the split is built again
+ * by /api/finish once the coin exists, so the wallet can simulate it before it signs.
  */
 import {
   ComputeBudgetProgram,
@@ -44,6 +45,7 @@ export async function buildLaunch({
   slippagePercent = 6,
   lookupTable = null,
   mintKey = Keypair.generate(),
+  signMint = true,
 }) {
   const sdk = offline();
   const net = online(connection);
@@ -112,13 +114,17 @@ export async function buildLaunch({
   const { blockhash } = await connection.getLatestBlockhash("confirmed");
 
   const tx1 = v0(user, blockhash, [...budget1, ...createAndBuy], tables);
-  tx1.sign([mintKey]); // the mint is a signer of its own creation; the user signs the rest
+  // the mint is a signer of its own creation. Phantom flags a transaction another key signed before the
+  // wallet, so the site leaves it unsigned and the send route adds the mint's signature after the wallet's
+  if (signMint) tx1.sign([mintKey]);
   const tx2 = v0(user, blockhash, [...budget2, ...shareIxs], tables);
 
   return {
     mint: mint.toBase58(),
     amount: amount.toString(),
     quoteAmount: quoteAmount.toString(),
+    // the create instruction as built, so the send route signs for the mint only on exactly this coin
+    createData: Buffer.from(createAndBuy[0].data).toString("base64"),
     transactions: [serialize(tx1), serialize(tx2)],
   };
 }

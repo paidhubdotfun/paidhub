@@ -143,7 +143,7 @@ export default function docsPage(root) {
         <dt>Is the developer behind the coin?</dt><dd>Not unless their row says they are in. A coin pays them whether or not they ever show up.</dd>
         <dt>What if a developer never claims?</dt><dd>Their share keeps waiting in pump.fun's account for them, with no deadline. Nobody else can take it.</dd>
         <dt>Can I launch a coin on my own repo?</dt><dd>Yes. You get the developers' half for it and the launcher's 10% too.</dd>
-        <dt>Why two transactions?</dt><dd>A coin and its fee split do not fit in one Solana transaction. Your wallet asks once for both. If the second never lands, the coin page lets the same wallet finish it.</dd>
+        <dt>Why two transactions?</dt><dd>A coin and its fee split do not fit in one Solana transaction. Your wallet asks for the coin first and for the split once the coin is on chain, so it can check each one against the chain before you sign. If the second never lands, the coin page lets the same wallet finish it.</dd>
         <dt>Where does the scout's text come from?</dt><dd>A small AI model reads each repo's README and writes two sentences. The star counts come from GitHub.</dd>
       </dl>
     </section>

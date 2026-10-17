@@ -1,4 +1,4 @@
-// Launch: paste a repo, see exactly who gets paid, name the coin, sign two transactions in one approval.
+// Launch: paste a repo, see exactly who gets paid, name the coin, sign the coin and then its fee split.
 // The server checks the repo and the people again and builds everything; the wallet only signs.
 import { CONFIG, esc, px, avatar, go } from "../ui.js";
 import { repo as repoCheck, api } from "../api.js";
@@ -59,7 +59,7 @@ export default async function launchPage(root) {
           <button class="btn" type="button" id="wallet">${px("wallet", 1)} Connect wallet</button>
           <button class="btn btn--black" type="submit" id="go" ${open ? "" : "disabled"}>Sign and launch</button>
         </div>
-        <p class="dim" style="font-size:13px">Your wallet shows two transactions in one approval: the coin with your first buy, then the fee split. pump.fun locks the split forever.</p>
+        <p class="dim" style="font-size:13px">Your wallet asks twice: first the coin with your first buy, then, once the coin is on chain, its fee split. pump.fun locks the split forever.</p>
       </div>
       <div class="status" id="status" aria-live="polite"></div>
     </form>
@@ -178,7 +178,7 @@ export default async function launchPage(root) {
       const image = await readImage($("#image").files[0]);
       step("Building the coin and its fee split…");
       const built = await api("/api/launch", { method: "POST", body: { ...input, repo: target.repo.fullName, wallet: connected().address, image, devBuyLamports: buy } });
-      step(`Built $${esc(built.metadata.symbol)}. Approve both transactions in your wallet…`);
+      step(`Built $${esc(built.metadata.symbol)}. Approve the coin with your first buy in your wallet (1 of 2)…`);
       let signed;
       try {
         signed = await signAll(built.transactions);
@@ -186,8 +186,21 @@ export default async function launchPage(root) {
         report("wallet-refused", { message: err.message });
         throw new Error("the wallet did not sign. Nothing was sent.");
       }
-      step("Sending: the coin first, then the split…");
-      const sent = await api("/api/send", { method: "POST", body: { mint: built.mint, transactions: signed } });
+      step("Creating the coin…");
+      let sent = await api("/api/send", { method: "POST", body: { mint: built.mint, transactions: signed } });
+      if (!sent.onPad) {
+        // the split is built and simulated only now that the coin exists, so the wallet can check it
+        const split = await api("/api/finish", { method: "POST", body: { mint: built.mint, wallet: connected().address } });
+        step(`$${esc(built.metadata.symbol)} is on chain. Approve its fee split in your wallet (2 of 2)…`);
+        try {
+          signed = await signAll(split.transactions);
+        } catch (err) {
+          report("wallet-refused", { message: err.message, step: "split" });
+          throw new Error(`the wallet did not sign the split. The coin exists; finish it from its page: paidhub.io/${target.repo.fullName}`);
+        }
+        step("Locking the split…");
+        sent = await api("/api/send", { method: "POST", body: { mint: built.mint, transactions: signed } });
+      }
       if (!sent.onPad) throw new Error(sent.note);
       step(`Done. $${esc(built.metadata.symbol)} is live and its split is locked. Opening its page…`);
       setTimeout(() => go(`/${target.repo.fullName}`), 1200);

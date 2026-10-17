@@ -8,8 +8,28 @@
 import { VersionedTransaction } from "@solana/web3.js";
 import { ok, bad, route, body } from "./lib/http.js";
 import { rpc } from "./lib/chain.js";
+import { mintFor } from "./lib/secret.js";
 import { openStore, coinKey, launchKey, pendingKey, repoHoldKey } from "./lib/store.js";
 import { registerIfLaunched, checkLaunchTx } from "./lib/register.js";
+
+const PUMP = "6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P";
+
+/**
+ * The wallet signs the coin first (Phantom marks a transaction another key signed before it as unsafe),
+ * then the pad adds the mint's own signature, and only to the exact create instruction it built.
+ */
+export function addMintSignature(tx, built, nonce) {
+  const keys = tx.message.staticAccountKeys.map((k) => k.toBase58());
+  const slot = keys.indexOf(built.mint);
+  if (slot < 0 || slot >= tx.message.header.numRequiredSignatures) return false;
+  if (tx.signatures[slot].some((b) => b !== 0)) return false;
+  const create = tx.message.compiledInstructions.find((ix) => keys[ix.programIdIndex] === PUMP && Buffer.from(ix.data).toString("base64") === built.createData);
+  if (!built.createData || !create) throw new Error("this is not the coin the pad built");
+  const mintKey = mintFor(built.launcher, built.symbol, nonce);
+  if (mintKey.publicKey.toBase58() !== built.mint) throw new Error("this coin's key is gone: launch it again");
+  tx.sign([mintKey]);
+  return true;
+}
 
 export async function sendInOrder(connection, transactions, { label = "launch" } = {}) {
   const signatures = [];
@@ -55,12 +75,16 @@ export const handler = route(async (req, res) => {
   try {
     txs = transactions.map((t) => VersionedTransaction.deserialize(Buffer.from(String(t), "base64")));
     for (const tx of txs) checkLaunchTx(tx, built);
+    // a record from before the nonce was kept with it: the launcher's pending build holds it
+    const pending = built.nonce ? null : await store.read(pendingKey(built.launcher), null);
+    const nonce = built.nonce || (pending?.mint === mint ? pending.nonce : null);
+    for (const tx of txs) if (nonce) addMintSignature(tx, built, nonce);
   } catch (e) {
     return bad(res, e.message || "those are not the coin's launch transactions");
   }
 
   const connection = rpc();
-  const signatures = await sendInOrder(connection, transactions, { label: "launch" });
+  const signatures = await sendInOrder(connection, txs.map((tx) => Buffer.from(tx.serialize()).toString("base64")), { label: "launch" });
 
   const { onPad, config, taken } = await registerIfLaunched(store, connection, built, signatures);
   const pending = await store.read(pendingKey(built.launcher), null);

@@ -61,6 +61,7 @@ test("repo, launch, distribute, claim, buyback, board, consent: the whole path",
     const repoRoute = (await import("../server/repo.js")).handler;
     const launchRoute = (await import("../server/launch.js")).handler;
     const sendRoute = (await import("../server/send.js")).handler;
+    const finishRoute = (await import("../server/finish.js")).handler;
     const coinRoute = (await import("../server/coin.js")).handler;
     const personRoute = (await import("../server/person.js")).handler;
     const stateRoute = (await import("../server/state.js")).handler;
@@ -99,12 +100,21 @@ test("repo, launch, distribute, claim, buyback, board, consent: the whole path",
     const launch = async (wallet, repo, name, symbol) => {
       const r = await call(launchRoute, mockReq({ method: "POST", body: { wallet: wallet.publicKey.toBase58(), repo, name, symbol, description: "", twitter: "@x", website: "", image: PNG_1PX, devBuyLamports: 200_000_000 } }));
       if (r.status !== 200) return r;
-      const signed = r.json.transactions.map((b) => {
-        const tx = VersionedTransaction.deserialize(Buffer.from(b, "base64"));
-        tx.sign([wallet]);
-        return Buffer.from(tx.serialize()).toString("base64");
-      });
-      const s = await call(sendRoute, mockReq({ method: "POST", body: { mint: r.json.mint, transactions: signed } }));
+      // as the site does it: the wallet signs the coin alone (the pad adds the mint's signature after it),
+      // then the split, built only once the coin exists
+      const signed = (list) =>
+        list.map((b) => {
+          const tx = VersionedTransaction.deserialize(Buffer.from(b, "base64"));
+          tx.sign([wallet]);
+          return Buffer.from(tx.serialize()).toString("base64");
+        });
+      assert.equal(r.json.transactions.length, 1, "the launch route hands out the coin alone");
+      let s = await call(sendRoute, mockReq({ method: "POST", body: { mint: r.json.mint, transactions: signed(r.json.transactions) } }));
+      if (s.status === 200 && !s.json.onPad) {
+        const split = await call(finishRoute, mockReq({ method: "POST", body: { mint: r.json.mint, wallet: wallet.publicKey.toBase58() } }));
+        if (split.status !== 200) return split;
+        s = await call(sendRoute, mockReq({ method: "POST", body: { mint: r.json.mint, transactions: signed(split.json.transactions) } }));
+      }
       return { ...s, mint: r.json.mint, built: r.json };
     };
     const l1 = Keypair.generate();

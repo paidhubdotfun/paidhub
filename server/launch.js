@@ -132,6 +132,7 @@ export const handler = route(async (req, res) => {
     devBuyLamports: devBuy,
     lookupTable,
     mintKey,
+    signMint: false,
   });
 
   // what this mint was built for, written by the pad itself: /api/send registers the coin from
@@ -148,18 +149,25 @@ export const handler = route(async (req, res) => {
     website,
     repo: { id: target.repo.id, fullName: target.repo.fullName, url: target.repo.url, owner: target.repo.owner.login, name: target.repo.name },
     people: target.people,
+    nonce,
+    createData: built.createData,
     builtAt: new Date().toISOString(),
   });
   await store.write(pendingKey(user.toBase58()), { symbol: form.symbol, content, mint, nonce, at: reuse?.at || new Date().toISOString() });
   await store.write(repoHoldKey(target.repo.id), { wallet: user.toBase58(), mint, at: new Date().toISOString() });
 
+  // only the coin goes out now: a wallet simulates every transaction it is asked to sign, and the split
+  // cannot simulate before the coin exists, so /api/finish builds it once the coin is on chain
   return ok(res, {
-    ...built,
+    mint,
+    amount: built.amount,
+    quoteAmount: built.quoteAmount,
+    transactions: [built.transactions[0]],
     uri,
     metadata,
     shares: SHARES,
     people: target.people.map((p, i) => ({ ...p, shareBps: shares[i] })),
-    sign: "sign both, in order: the coin is created first, then its fees are locked onto the people, the pot, the pad and you",
+    sign: "sign the coin; once it is on chain, /api/finish builds its split for the same wallet to sign",
   });
 });
 
